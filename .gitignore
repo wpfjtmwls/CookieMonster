@@ -1,0 +1,14 @@
+*.txt
+*.zip
+venv/
+*.pyc
+*.d2v
+*.npy
+word2vec
+*.meta
+*.index
+bert_config.json
+
+model_run/pre_trained_models/bert_uncased/bert_model.ckpt.data-00000-of-00001
+model_run/output_unsupervised
+model_run/output_candidates
