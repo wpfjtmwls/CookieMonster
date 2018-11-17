@@ -36,7 +36,7 @@ p_rank_dict ={}
 for line in f2:
     word = line.split()
     p_rank_dict[word[1].lower()] = word[0]
-print "page Rank models loaded"
+print( "page Rank models loaded" )
 
 # Get the candidate labels form candiate label file
 label_list =[]
@@ -50,9 +50,9 @@ test_chunk_size = len(label_list[0])
 
 # Number of Supervised labels needed should not be less than the number of candidate labels.
 if test_chunk_size < int(args.num_sup_labels):
-    print "\n"
-    print "Error"
-    print "You cannot extract more labels than present in input file"
+    print( "\n" )
+    print( "Error" )
+    print( "You cannot extract more labels than present in input file" )
     sys.exit() 
 
 # Reading in the topic terms from the topics file.
@@ -62,7 +62,7 @@ try:
     topic_list = new_frame.set_index('topic_id').T.to_dict('list')
 except:
     topic_list = topics.set_index('topic_id').T.to_dict('list')
-print "Data Gathered for supervised model"
+print( "Data Gathered for supervised model" )
 
 # Method to get letter trigrams for topic terms.
 def get_topic_lt(elem):
@@ -122,7 +122,7 @@ temp_lt =[]
 for j in range(0,len(topic_list)):
     temp_lt.append(get_lt_ranks(label_list[j],j))
 letter_trigram_feature = [item for sublist in temp_lt for item in sublist] 
-print "letter trigram feature"
+print( "letter trigram feature" )
 #print letter_trigram_feature
 
 # Employed to change the format of features.
@@ -184,7 +184,7 @@ cols = ['label','topic_id','letter_trigram','prank','lab_length','common_words',
 features =['letter_trigram','prank','lab_length','common_words'] # Name of features.
 
 feature_dataset =prepare_features(lt_dict,p_rank_dict,cols,features)
-print "All features generated"
+print( "All features generated" )
 
 # This function converts the dataset into a format which is taken by SVM ranker classify binary file.
 
@@ -228,18 +228,18 @@ def get_predictions(test_set,num):
     for j in range(len(pred_chunks)):
         max_sort = np.array(pred_chunks[j]).argsort()[::-1][:int(args.num_sup_labels)]
         list_max.append(max_sort)
-    print "\n"
-    print "Printing Labels for supervised model"
+    print( "\n" )
+    print( "Printing Labels for supervised model" )
     g = open(args.output_supervised,'w')
     for cnt, (x,y) in enumerate(zip(test_chunks,list_max)):
-        print "Top "+args.num_sup_labels+" labels for topic "+str(cnt)+" are:"
+        print( "Top "+args.num_sup_labels+" labels for topic "+str(cnt)+" are:" )
         g.write( "Top "+args.num_sup_labels+" labels for topic "+str(cnt)+" are:" +"\n")
         for i2 in y:
             m= re.search('# (.*)',x[i2])
-            print m.group(1)
+            print( m.group(1) )
             g.write(m.group(1)+"\n")
 
-        print "\n"
+        print( "\n" )
         g.write("\n")
     g.close()
 

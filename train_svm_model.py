@@ -57,7 +57,7 @@ p_rank_dict ={}
 for line in f2:
     word = line.split()
     p_rank_dict[word[1].lower()] = word[0]
-print "page Rank model loaded"
+print( "page Rank model loaded" )
 
 # Method to get letter trigrams for topic terms.
 def get_topic_lt(elem):
@@ -116,7 +116,7 @@ temp_lt =[]
 for j in range(0,len(topic_list)):
     temp_lt.append(get_lt_ranks(labels_list[j],j))
 letter_trigram_feature = [item for sublist in temp_lt for item in sublist]
-print "Letter trigram feature generated"
+print( "Letter trigram feature generated" )
 
 # Changes the format of letter trigram into a dict of dict.
 def change_format(f1):
@@ -192,12 +192,12 @@ def convert_dataset(train,feature_names):
 
 
 feature_dataset =prepare_features(lt_dict,p_rank_dict,cols,features)
-print "\n"
-print "All features generated"
+print( "\n" )
+print( "All features generated" )
 
 train_list = convert_dataset(feature_dataset,features)
-print "\n"
-print "Preparing for generating SVM rank model"
+print( "\n" )
+print( "Preparing for generating SVM rank model" )
 
 # This method generates the trained SVM file using SVM ranker learn,
 def generate_svmrank(train_set):
