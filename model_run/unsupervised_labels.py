@@ -35,9 +35,9 @@ test_chunk_size = len(label_list[0])
 
 # Number of Unupervised labels needed should not be less than the number of candidate labels
 if test_chunk_size < int(args.num_unsup_labels):
-    print "\n"
-    print "Error"
-    print "You cannot extract more labels than present in input file"
+    print( "\n" )
+    print( "Error" )
+    print( "You cannot extract more labels than present in input file" )
     sys.exit()
 
 # Reading in the topic terms from the topics file.
@@ -47,8 +47,8 @@ try:
     topic_list = new_frame.set_index('topic_id').T.to_dict('list')
 except:
     topic_list = topics.set_index('topic_id').T.to_dict('list')
-print "Data Gathered for unsupervised model"
-print "\n"
+print( "Data Gathered for unsupervised model" )
+print( "\n" )
 
 # Method to get letter trigrams for topic terms.
 def get_topic_lg(elem):
@@ -78,7 +78,7 @@ def get_best_label(label_list,num):
         total = sum(label_cnt.values(), 0.0)
         for key in label_cnt:
             label_cnt[key] /= total
-        tot_keys = list(set(topic_ls.keys() + label_cnt.keys()))
+        tot_keys = list(set( list(topic_ls.keys()) + list(label_cnt.keys()) ))
         listtopic = []
         listlabel = []
         for elem in tot_keys:
@@ -100,16 +100,16 @@ for j in range(0,len(topic_list)):
     unsup_output.append(get_best_label(label_list[j],j))
 
 # printing the top unsupervised labels.
-print "Printing labels for unsupervised model"
-print "\n"
+print( "Printing labels for unsupervised model" )
+print( "\n" )
 g = open(args.output_unsupervised,'w')
 for i,item in enumerate(unsup_output):
-    print "top " +args.num_unsup_labels+ " labels for topic " +str(i) +" are:"
+    print( "top " +args.num_unsup_labels+ " labels for topic " +str(i) +" are:" )
     g.write("top " +args.num_unsup_labels+ " labels for topic " +str(i) +" are:" +"\n")
     for elem in item:
-        print elem
+        print( elem )
         g.write(elem +"\n")
-    print "\n"
+    print( "\n" )
     g.write("\n")
 g.close()
 
