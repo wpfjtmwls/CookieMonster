@@ -21,7 +21,7 @@ import argparse
 parser = argparse.ArgumentParser()
 
 #Common Parameters
-data ="toy_data/toytopics.csv" # The file in csv format which contains the topic terms that needs a label. 
+data ="data/topics.csv" # The file in csv format which contains the topic terms that needs a label. 
 
 #Parameters for candidate Generation of Labels
 doc2vecmodel = "pre_trained_models/doc2vec/docvecmodel.d2v" # Path for Doc2vec Model.
@@ -33,13 +33,18 @@ word2vec_indices_file = "support_files/word2vec_indices" # The filtered word2vec
 parser.add_argument("-cg", "--candidates", help ="get candidate labels", action = "store_true")
 
 #Unsupevised model parameters
-num_unsup_labels =3 # Number of unsupervised labels needed (In general should be less than candidate labels, till you have your own file and then depends on number of labels)
+num_unsup_labels = 10 # Number of unsupervised labels needed (In general should be less than candidate labels, till you have your own file and then depends on number of labels)
 cand_gen_output = "output_candidates" # The file which contains candiate generation output.Also used to get supervised output
 out_unsup = "output_unsupervised" # The Output File name for unsupervised labels
 parser.add_argument("-us", "--unsupervised", help="get unsupervised labels", action="store_true")
 
+#Unsupevised using fasttextmodel parameters
+cand_gen_output = "output_candidates" # The file which contains candiate generation output.Also used to get supervised output
+out_unsup_ft = "output_unsupervised_ft" # The Output File name for unsupervised labels
+parser.add_argument("-usft", "--unsupervised_ft", help="get unsupervised labels using fasttext", action="store_true")
+
 #supervised parameters
-num_sup_labels = 3 # Number of supervised labels needed. Should be less than the candidate labels.
+num_sup_labels = 10 # Number of supervised labels needed. Should be less than the candidate labels.
 pagerank_model = "support_files/pagerank-titles-sorted.txt" # This is precomputed pagerank model needed to genrate pagerank features.
 svm_classify = "support_files/svm_rank_classify" # SVM rank classify. After you download SVM Ranker classify gibve the path of svm_rank_classify here
 pretrained_svm_model = "support_files/svm_model" # This is trained supervised model on the whole our dataset. Run train train_svm_model.py if you want a new model on different dataset. 
@@ -54,7 +59,7 @@ if args.candidates:  # It calls unsupervised_labels python file to get labels in
 
 if args.unsupervised:  # It calls unsupervised_labels python file to get labels in unsupervised way
     query2 = "python unsupervised_labels.py "+str(num_unsup_labels)+" "+data+" "+cand_gen_output +" "+out_unsup
-    print "Executing Unsupervised model"
+    print "Executing Unsupervised Model"
     os.system(query2)
 
 if args.supervised:  # It calls supervised_labels python file to get labels in supervised way.
@@ -62,3 +67,7 @@ if args.supervised:  # It calls supervised_labels python file to get labels in s
     print "Executing Supervised Model"
     os.system(query3)
 
+if args.unsupervised_ft:
+    query4 = "python unsupervised_labels_ft.py "+str(num_unsup_labels)+" "+data+" "+cand_gen_output +" "+out_unsup_ft
+    print "Executing Unsupervised Model using fasttext"
+    os.system(query4)
