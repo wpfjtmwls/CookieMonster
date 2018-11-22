@@ -54,17 +54,17 @@ parser.add_argument("-s", "--supervised", help ="get supervised labels", action 
 args = parser.parse_args()
 if args.candidates:  # It calls unsupervised_labels python file to get labels in unsupervised way
     query1 = "python cand_generation.py "+str(num_candidates)+" "+doc2vecmodel+" "+word2vecmodel+" "+data+" "+output_filename +" "+doc2vec_indices_file+" "+word2vec_indices_file
-    print "Extracting candidate labels"
+    print( "Extracting candidate labels" )
     os.system(query1)
 
 if args.unsupervised:  # It calls unsupervised_labels python file to get labels in unsupervised way
     query2 = "python unsupervised_labels.py "+str(num_unsup_labels)+" "+data+" "+cand_gen_output +" "+out_unsup
-    print "Executing Unsupervised Model"
+    print( "Executing Unsupervised model" )
     os.system(query2)
 
 if args.supervised:  # It calls supervised_labels python file to get labels in supervised way.
     query3 = "python supervised_labels.py " +str(num_sup_labels)+" "+pagerank_model+" "+data+" "+cand_gen_output+" "+svm_classify+" "+pretrained_svm_model+" "+out_sup
-    print "Executing Supervised Model"
+    print( "Executing Supervised Model" )
     os.system(query3)
 
 if args.unsupervised_ft:

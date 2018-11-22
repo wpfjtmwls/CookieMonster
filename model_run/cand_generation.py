@@ -53,7 +53,7 @@ with open(args.word2vec_indices,'rb') as n:
 # Models loaded
 model1 =Doc2Vec.load(args.doc2vecmodel)
 model2 = Word2Vec.load(args.word2vecmodel)
-print "models loaded"
+print( "models loaded" )
 
 # Loading the data file
 topics = pd.read_csv(args.data)
@@ -62,20 +62,20 @@ try:
     topic_list = new_frame.set_index('topic_id').T.to_dict('list')
 except:
     topic_list = topics.set_index('topic_id').T.to_dict('list')
-print "Data Gathered"
+print( "Data Gathered" )
 
 
 w_indices = list(set(w_indices))
 d_indices = list(set(d_indices))
 
 # Models normalised in unit vectord from the indices given above in pickle files.
-model1.syn0norm = (model1.syn0 / sqrt((model1.syn0 ** 2).sum(-1))[..., newaxis]).astype(REAL)
+model1.wv.syn0norm = (model1.wv.syn0 / sqrt((model1.wv.syn0 ** 2).sum(-1))[..., newaxis]).astype(REAL)
 model1.docvecs.doctag_syn0norm =  (model1.docvecs.doctag_syn0 / sqrt((model1.docvecs.doctag_syn0 ** 2).sum(-1))[..., newaxis]).astype(REAL)[d_indices]
-print "doc2vec normalized"
+print( "doc2vec normalized" )
 
-model2.syn0norm = (model2.syn0 / sqrt((model2.syn0 ** 2).sum(-1))[..., newaxis]).astype(REAL)
-model3 = model2.syn0norm[w_indices]
-print "word2vec normalized"
+model2.wv.syn0norm = (model2.wv.syn0 / sqrt((model2.wv.syn0 ** 2).sum(-1))[..., newaxis]).astype(REAL)
+model3 = model2.wv.syn0norm[w_indices]
+print( "word2vec normalized" )
 
 # This method is mainly used to remove brackets from the candidate labels.
 
@@ -95,10 +95,10 @@ def get_labels(topic_num):
     cnt = 0
     store_indices =[]
     
-    print "Processing Topic number " +str(topic_num)
+    print( "Processing Topic number " +str(topic_num) )
     for item in topic_list[topic_num]:
         try: 
-            tempdoc2vec = model1.syn0norm[model1.vocab[item].index] # The word2vec value of topic word from doc2vec trained model
+            tempdoc2vec = model1.wv.syn0norm[model1.vocab[item].index] # The word2vec value of topic word from doc2vec trained model
         except:
             pass
         else:
@@ -107,7 +107,7 @@ def get_labels(topic_num):
             valdoc2vec = valdoc2vec + distsdoc2vec
 
         try:
-            tempword2vec = model2.syn0norm[model2.vocab[item].index]  # The word2vec value of topic word from word2vec trained model
+            tempword2vec = model2.wv.syn0norm[model2.vocab[item].index]  # The word2vec value of topic word from word2vec trained model
         except:
             pass
         else:
@@ -123,9 +123,8 @@ def get_labels(topic_num):
             """
               
             if (model2.vocab[item].index) in w_indices:
-                
                 i_val = w_indices.index(model2.vocab[item].index)
-      		store_indices.append(i_val)
+                store_indices.append(i_val)
                 distsword2vec[i_val] =0.0
             valword2vec = valword2vec + distsword2vec
     
@@ -200,5 +199,5 @@ for i,elem in enumerate(result):
     g.write(val+"\n")
 g.close()
 
-print "Candidate labels written to "+args.outputfile_candidates
-print "\n"
+print( "Candidate labels written to "+args.outputfile_candidates )
+print( "\n" )

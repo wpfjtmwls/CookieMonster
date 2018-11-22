@@ -43,13 +43,13 @@ def get_word(word):
 # Load the trained doc2vec and word2vec models.
 model1 =Doc2Vec.load(doc2vec_model)
 model2 = Word2Vec.load(word2vec_model)
-print "Models loaded"
+print( "Models loaded" )
 
 # Loading the pruned tiles and making a set of it
 with open(short_label_documents,"r") as k:
     doc_labels = pickle.load(k)
 doc_labels = set(doc_labels)
-print "Pruned document titles loaded"
+print( "Pruned document titles loaded" )
 
 # laoding thw phrasses used in training word2vec model. And then replacing space with underscore.
 h = open(short_label_word2vec_tokenised,'r')
@@ -65,7 +65,7 @@ for words in list_labels:
     temp ='_'.join(new)
     word2vec_labels.append(temp)
 word2vec_labels = set(word2vec_labels)
-print "Word2vec model phrases loaded"
+print( "Word2vec model phrases loaded" )
 
 doc_indices =[]
 word_indices =[]

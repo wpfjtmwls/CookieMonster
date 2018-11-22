@@ -15,4 +15,6 @@ bert_config.json
 model_run/pre_trained_models/*
 model_run/output_unsupervised_ft
 model_run/output_unsupervised
+model_run/output_supervised 
+model_run/output_goldstandard
 model_run/output_candidates

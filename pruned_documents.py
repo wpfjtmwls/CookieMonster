@@ -49,7 +49,7 @@ def get_labels(filename):
                 if "</doc" in line:                     # checks if we reach end of that particular document and if condition ois satisfied title is added into list. 
                     temp_list= found.split("_")
                     if (len(values) > doc_length) and (len(temp_list) < title_length):
-   		        list_labels.append(found)
+   		                list_labels.append(found)
    
     return list_labels
 
@@ -60,7 +60,7 @@ for path,subdirs,files in os.walk(tokenised_wiki_directory):
         temp = os.path.join(path, name)
         filenames.append(temp)
 
-print "Got all files"
+print( "Got all files" )
 # Multiprocess files
 cores = mp.cpu_count()
 pool = Pool(processes = cores)
@@ -70,6 +70,6 @@ y_parallel = pool.map(get_labels, filenames)
 all_docs = [item for sublist in y_parallel for item in sublist]
 
 #Writing into pickle file
-print "Writng labels to picke file"
+print( "Writng labels to picke file" )
 with open(output_filename,'w') as k:
     pickle.dump(all_docs,k)
