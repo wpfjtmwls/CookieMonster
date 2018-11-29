@@ -7,13 +7,19 @@ import argparse
 parser = argparse.ArgumentParser()
 
 # parameter for gold standard labels (top N)
-N = 10
+N = 5
 output_gs_path = "../model_run/output_goldstandard"
 
 # model parameters
 parser.add_argument("-us", "--unsupervised", help ="evaluate unsupervised model", action = "store_true")
 parser.add_argument("-usft", "--unsupervised_ft", help ="evaluate unsupervised fasttext model", action = "store_true")
 parser.add_argument("-s", "--supervised", help ="evaluate supervised model", action = "store_true")
+
+# number of topics per corpus
+N_blogs = 45
+N_books = 38
+N_news = 60
+N_pubmed = 85
 
 gold_topic_labels = defaultdict(lambda: {})
 with open("annotated_dataset.csv", "r") as f:
@@ -28,14 +34,15 @@ with open("annotated_dataset.csv", "r") as f:
 def generate_gs(n):
     g = open(output_gs_path , 'w')
     for topic_id, lbl_scores in gold_topic_labels.items():
-        top_p = sorted(lbl_scores, key=lambda x: x[1], reverse=True)[:n]
+        top_p = sorted(lbl_scores.items(), key=lambda x: x[1], reverse=True)[:n]
         g.write("Top " +str(n)+ " labels for topic " +str(topic_id) +" are:" +"\n")
-        for lbl in top_p:
-            g.write(lbl +"\n")
+        for lbl, score in top_p:
+            g.write(lbl + " " + str(score) +"\n")
         g.write("\n")
     g.close()
-    
+
 # generate gold standard labels for top N labels
+print ("Generating gold standard labels")
 generate_gs(N)
 
 def parse_output_file(fname):
@@ -92,39 +99,92 @@ def nDCG_p(results, topic, p):
 
 def avg_nDCG_p(model_topic_labels, p):
     """ Compute the average nDCG@p from all the topics in model_topic_labels."""
-    model_dcg_sum = 0
-    N_docs = len(model_topic_labels)
+    blog_model_dcg_sum = 0
+    book_model_dcg_sum = 0
+    news_model_dcg_sum = 0
+    pubmed_model_dcg_sum = 0
+
     for topic_id, labels in model_topic_labels.items():
-        model_dcg_sum += nDCG_p(labels, topic_id, p)
-    return model_dcg_sum / N_docs
+        if topic_id < N_blogs:
+            blog_model_dcg_sum += nDCG_p(labels, topic_id, p)
+        elif topic_id < N_blogs + N_books:
+            book_model_dcg_sum += nDCG_p(labels, topic_id, p)
+        elif topic_id < N_blogs + N_books + N_news:
+            news_model_dcg_sum += nDCG_p(labels, topic_id, p)
+        else:
+            pubmed_model_dcg_sum += nDCG_p(labels, topic_id, p)
+
+    return (blog_model_dcg_sum / N_blogs, book_model_dcg_sum / N_books, \
+            news_model_dcg_sum / N_news, pubmed_model_dcg_sum / N_pubmed)
 
 def top_1_avg(model_topic_labels):
     """ Compute the average top_1 score from all the topics in model_topic_labels."""
-    model_sum = 0
-    gold_sum = 0
+    blog_model_sum = 0
+    book_model_sum = 0
+    news_model_sum = 0
+    pubmed_model_sum = 0
+    blog_gold_sum = 0
+    book_gold_sum = 0
+    news_gold_sum = 0
+    pubmed_gold_sum = 0
+
     for topic_id, labels in model_topic_labels.items():
         top_model_label = labels[0]
         model_score = gold_topic_labels[topic_id][top_model_label]
         gold_score = max(gold_topic_labels[topic_id].values())
-        model_sum += model_score
-        gold_sum += gold_score
-    N_topics = len(model_topic_labels)
-    top1avg = model_sum/N_topics
-    upper_bound = gold_sum/N_topics
-    return (top1avg, upper_bound)
+        if topic_id < N_blogs:
+            blog_model_sum += model_score
+            blog_gold_sum += gold_score
+        elif topic_id < N_blogs + N_books:
+            book_model_sum += model_score
+            book_gold_sum += gold_score
+        elif topic_id < N_blogs + N_books + N_news:
+            news_model_sum += model_score
+            news_gold_sum += gold_score
+        else:
+            pubmed_model_sum += model_score
+            pubmed_gold_sum += gold_score
+
+    top1avg_blogs, upper_bound_blogs = blog_model_sum / N_blogs, blog_gold_sum / N_blogs
+    top1avg_books, upper_bound_books = book_model_sum / N_books, book_gold_sum / N_books
+    top1avg_news, upper_bound_news = news_model_sum / N_news, news_gold_sum / N_news
+    top1avg_pubmed, upper_bound_pubmed = pubmed_model_sum / N_pubmed, pubmed_gold_sum / N_pubmed
+
+    return (top1avg_blogs, upper_bound_blogs, top1avg_books, upper_bound_books, \
+    top1avg_news, upper_bound_news, top1avg_pubmed, upper_bound_pubmed)
 
 def evaluate_model(model_topic_labels):
 
-    nDCG_1 = avg_nDCG_p(model_topic_labels, 1)
-    nDCG_3 = avg_nDCG_p(model_topic_labels, 3)
-    nDCG_5 = avg_nDCG_p(model_topic_labels, 5)
-    (top_1_avg_score, upper_bound) = top_1_avg(model_topic_labels)
+    nDCG_1_blogs, nDCG_1_books, nDCG_1_news, nDCG_1_pubmed = avg_nDCG_p(model_topic_labels, 1)
+    nDCG_3_blogs, nDCG_3_books, nDCG_3_news, nDCG_3_pubmed = avg_nDCG_p(model_topic_labels, 3)
+    nDCG_5_blogs, nDCG_5_books, nDCG_5_news, nDCG_5_pubmed = avg_nDCG_p(model_topic_labels, 5)
 
-    print ("nDCG_1 : %.2f" % nDCG_1)
-    print ("nDCG_3 : %.2f" % nDCG_3)
-    print ("nDCG_5 : %.2f" % nDCG_5)
-    print ("Top-1 Avg : %.2f" % top_1_avg_score)
-    print ("Upper bound : %.2f \n" % upper_bound)
+    top1avg_blogs, upper_bound_blogs, top1avg_books, upper_bound_books, \
+    top1avg_news, upper_bound_news, top1avg_pubmed, upper_bound_pubmed = top_1_avg(model_topic_labels)
+
+    print ("\nnDCG_1_blogs : %.2f" % nDCG_1_blogs)
+    print ("nDCG_1_books : %.2f" % nDCG_1_books)
+    print ("nDCG_1_news : %.2f" % nDCG_1_news)
+    print ("nDCG_1_pubmed : %.2f \n" % nDCG_1_pubmed)
+
+    print ("nDCG_3_blogs : %.2f" % nDCG_3_blogs)
+    print ("nDCG_3_books : %.2f" % nDCG_3_books)
+    print ("nDCG_3_news : %.2f" % nDCG_3_news)
+    print ("nDCG_3_pubmed : %.2f \n" % nDCG_3_pubmed)
+
+    print ("nDCG_5_blogs : %.2f" % nDCG_5_blogs)
+    print ("nDCG_5_books : %.2f" % nDCG_5_books)
+    print ("nDCG_5_news : %.2f" % nDCG_5_news)
+    print ("nDCG_5_pubmed : %.2f \n" % nDCG_5_pubmed)
+
+    print ("\nTop-1 Avg blogs : %.2f" % top1avg_blogs)
+    print ("Upper bound blogs : %.2f \n" % upper_bound_blogs)
+    print ("Top-1 Avg books : %.2f" % top1avg_books)
+    print ("Upper bound books : %.2f \n" % upper_bound_books)
+    print ("Top-1 Avg news : %.2f" % top1avg_news)
+    print ("Upper bound news : %.2f \n" % upper_bound_news)
+    print ("Top-1 Avg pubmed : %.2f" % top1avg_pubmed)
+    print ("Upper bound pubmed : %.2f \n" % upper_bound_pubmed)
 
 args = parser.parse_args()
 if args.unsupervised:  
