@@ -33,7 +33,7 @@ word2vec_indices_file = "support_files/word2vec_indices" # The filtered word2vec
 parser.add_argument("-cg", "--candidates", help ="get candidate labels", action = "store_true")
 
 #Unsupevised model parameters
-num_unsup_labels = 10 # Number of unsupervised labels needed (In general should be less than candidate labels, till you have your own file and then depends on number of labels)
+num_unsup_labels = 5 # Number of unsupervised labels needed (In general should be less than candidate labels, till you have your own file and then depends on number of labels)
 cand_gen_output = "output_candidates" # The file which contains candiate generation output.Also used to get supervised output
 out_unsup = "output_unsupervised" # The Output File name for unsupervised labels
 parser.add_argument("-us", "--unsupervised", help="get unsupervised labels", action="store_true")
@@ -42,6 +42,11 @@ parser.add_argument("-us", "--unsupervised", help="get unsupervised labels", act
 cand_gen_output = "output_candidates" # The file which contains candiate generation output.Also used to get supervised output
 out_unsup_ft = "output_unsupervised_ft" # The Output File name for unsupervised labels
 parser.add_argument("-usft", "--unsupervised_ft", help="get unsupervised labels using fasttext", action="store_true")
+
+#Unsupevised using fasttextmodel parameters
+cand_gen_output = "output_candidates" # The file which contains candiate generation output.Also used to get supervised output
+out_unsup_db = "output_unsupervised_db" # The Output File name for unsupervised labels
+parser.add_argument("-usdb", "--unsupervised_db", help="get unsupervised labels using dbpedia", action="store_true")
 
 #supervised parameters
 num_sup_labels = 10 # Number of supervised labels needed. Should be less than the candidate labels.
@@ -69,5 +74,10 @@ if args.supervised:  # It calls supervised_labels python file to get labels in s
 
 if args.unsupervised_ft:
     query4 = "python unsupervised_labels_ft.py "+str(num_unsup_labels)+" "+data+" "+cand_gen_output +" "+out_unsup_ft
-    print "Executing Unsupervised Model using fasttext"
+    print ("Executing Unsupervised Model using fasttext")
     os.system(query4)
+
+if args.unsupervised_db:
+    query5 = "python unsupervised_labels_db.py "+str(num_unsup_labels)+" "+data+" "+cand_gen_output +" "+out_unsup_db
+    print ("Executing Unsupervised Model using dbpedia")
+    os.system(query5)

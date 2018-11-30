@@ -13,6 +13,7 @@ output_gs_path = "../model_run/output_goldstandard"
 # model parameters
 parser.add_argument("-us", "--unsupervised", help ="evaluate unsupervised model", action = "store_true")
 parser.add_argument("-usft", "--unsupervised_ft", help ="evaluate unsupervised fasttext model", action = "store_true")
+parser.add_argument("-usdb", "--unsupervised_db", help ="evaluate unsupervised dbpedia model", action = "store_true")
 parser.add_argument("-s", "--supervised", help ="evaluate supervised model", action = "store_true")
 
 # number of topics per corpus
@@ -188,22 +189,28 @@ def evaluate_model(model_topic_labels):
 
 args = parser.parse_args()
 if args.unsupervised:  
-    print "\nEvaluting Unsupervised Model"
-    fname = "../model_run/output_unsupervised"
+    print ("\nEvaluting Unsupervised Model")
+    fname = ("../model_run/output_unsupervised")
     d = parse_output_file(fname)
     evaluate_model(d)
 
 elif args.unsupervised_ft:
-    print "\nEvaluating Unsupervised Model using fasttext"
-    fname = "../model_run/output_unsupervised_ft"
+    print ("\nEvaluating Unsupervised Model using fasttext")
+    fname = ("../model_run/output_unsupervised_ft")
+    d = parse_output_file(fname)
+    evaluate_model(d)
+
+elif args.unsupervised_db:  
+    print ("\nEvluating Unsupervised Model using dbpedia")
+    fname = ("../model_run/output_unsupervised_db")
     d = parse_output_file(fname)
     evaluate_model(d)
 
 elif args.supervised:  
-    print "\nEvluating Supervised Model"
-    fname = "../model_run/output_supervised"
+    print ("\nEvluating Supervised Model")
+    fname = ("../model_run/output_supervised")
     d = parse_output_file(fname)
     evaluate_model(d)
 
 else:
-    print "Invalid model evaluation"
+    print ("Invalid model evaluation")
