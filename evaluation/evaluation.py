@@ -77,7 +77,10 @@ def DCG_p(results, topic, p):
     dcg = 0
     for idx, label in enumerate(top_p):
         rank = idx + 1
-        dcg += (2 ** (rel(label)) - 1) / math.log(rank + 1, 2)
+        if idx == 0:
+            dcg += rel(label)
+            continue
+        dcg += rel(label)/ math.log(rank,2)
     return dcg
 
 def IDCG_p(topic, p):
@@ -87,7 +90,10 @@ def IDCG_p(topic, p):
     idcg = 0
     for idx, (label, rel) in enumerate(top_p):
         rank = idx + 1
-        idcg += (2 ** rel - 1) / math.log(rank + 1, 2)
+        if idx == 0:
+            idcg += rel
+            continue
+        idcg += rel/ math.log(rank,2)
     return idcg
 
 def nDCG_p(results, topic, p):
