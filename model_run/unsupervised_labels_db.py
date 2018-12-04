@@ -56,45 +56,80 @@ print ("\n")
 """
 This method will be used to extract the graph and choose best label based on graph centrality measure
 """
+def dd():
+    """
+    module level function for nested defaulctdict
+    """
+    return defaultdict(float)
 
-def extract_ranked_cands(seed_cands, top_links):
+graph_cent_dict = defaultdict(dd) # create dictionary for dumping graph centrality measures
+
+
+def extract_ranked_cands(topic_id, seed_cands, top_links):
     """
     Extract the generated candidates' rank out from the raw order after
     DBpedia exploration.
 
+    :param topic_id : topic id
     :param seed_cands: list of generated candidates
     :param top_links: list of (link, score) tuples 
     """
     cand_pool = set(seed_cands)
     top_cands = []
-    for raw_link, _ in top_links:
+    for raw_link, score in top_links:
         last_sep = raw_link.rfind("/")
         raw_title = raw_link[last_sep + 1:]
         title = raw_title.lower()        
         if title in cand_pool:
             top_cands.append(title)
+            graph_cent_dict[topic_id][title] = score
     return top_cands
 
-def get_best_label(label_list,num):
-    # update to incorporate other graph centrality measures
+def get_best_label(label_list,num,centrality_measure_fn):
+    """
+    Return ranked list of labels for each topic 
+
+    :param label_list: list of labels
+    :param num: topic id
+    :param centrality_measure_fn: centrality measure function
+    """
     fname = "Topics/topic" +str(num)+ "G"
     G = nx.read_gml(fname)
     Gc = max(nx.connected_component_subgraphs(G), key=len)
     
-    centrality_measure = nx.betweenness_centrality(Gc)
+    centrality_measure = centrality_measure_fn(Gc)
     top_links = sorted(centrality_measure.items(), key=lambda x: x[1], reverse=True)
-    cands_ranks = extract_ranked_cands(label_list, top_links)
+    cands_ranks = extract_ranked_cands(num, label_list, top_links)
 
     return cands_ranks[:int(args.num_unsup_labels)]
 
 unsup_output = []
 
+# centrality measures fns
+
+def close_btn_centrality(G):
+    """
+    centrality measure that weights half of betweenness and closeness each
+
+    :param G: networkx Graph
+    """
+    btn_results = nx.betweenness_centrality(G)
+    close_results = nx.closeness_centrality(G)
+    maxbtn = max(btn_results.values())
+    maxclose = max(close_results.values())
+    return {title : 0.5 * btn_results[title]/maxbtn + 0.5 * close_results[title]/maxclose \
+    for title in btn_results}
+
 
 for j in range(len(topic_list)):
     if j % 10 == 0:
         print ("Topic " + str(j) + " has been processed")
-    unsup_output.append(get_best_label(label_list[j],j))
+    unsup_output.append(get_best_label(label_list[j],j, nx.closeness_centrality))
 
+# retrieving graph centrality measure for each label and dumping as pickle
+import pickle
+with open('graph_cent.pickle', 'wb') as handle:
+    pickle.dump(graph_cent_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 # printing the top unsupervised labels.
 print ("Printing labels for unsupervised model")

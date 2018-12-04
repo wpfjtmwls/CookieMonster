@@ -14,12 +14,15 @@ import numpy as np
 import os
 import re
 from scipy.spatial.distance import cosine
+import networkx as nx
+import pickle
 
 #Global parameters for the model.
 
 path_svm_learn = "model_run/support_files/svm_rank_learn" # path to learn SVM ranker binary file. You will need to download it. 
 output_svm_model = "svm_model"    # name and location to put trained SVM model.
 path_pagerank = "model_run/support_files/pagerank-titles-sorted.txt" # Path to pagerank file.
+path_graph_cent = "model_run/support_files/graph_cent.pickle" # Path to graph-centrality file.
 topic_data = "dataset/topics.csv" # The toopic datset. it conatains all topic terms.
 topic_labels = "dataset/annotated_dataset.csv" # This is the label datset. It has 19 candidate labels for each topic.
 svm_hyperparameter = 0.1  # The SVM hyperparameter.
@@ -88,7 +91,7 @@ def get_lt_ranks(lab_list,num):
         total = sum(label_cnt.values(), 0.0)
         for key in label_cnt:
             label_cnt[key] /= total
-        tot_keys = list(set(topic_ls.keys() + label_cnt.keys()))
+        tot_keys = list(set(list(topic_ls.keys()) + list(label_cnt.keys())))
         listtopic = []
         listlabel = []
         for elem in tot_keys:
@@ -129,6 +132,19 @@ def change_format(f1):
 lt_dict = change_format(letter_trigram_feature)
 
 """
+This method will be used to get feature of graph centrality scores for candidate labels and then rank them.
+It uses pickled dictionary created from upsupervised_labels_db.py
+"""
+def dd(): # redefining dd to retrive it as pickle
+    """
+    module level function for nested defaulctdict
+    """
+    return defaultdict(float)
+
+with open(path_graph_cent, 'rb') as handle: 
+    graph_cent_dict = pickle.load(handle)
+
+"""
 This method is to prepare all features. It will take in dictionary of letter trigram, pagerank, list of
 all columns for the datframe and name of features. It will generate four features in the dataframe namely
 Pagerank, letter trigram, Topic overlap and Number of words in a label. Additionally DataFrame will also be given
@@ -136,7 +152,7 @@ the label name, topic_id and an avg_val which is average annotator value. This a
 the candidate label datset and is used to train the SVM model.
 """
 
-def prepare_features(letter_tg_dict,page_rank_dict,cols,feature_names):
+def prepare_features(letter_tg_dict,page_rank_dict,graph_cent_dict,cols,feature_names):
     frame =pd.DataFrame()
   
     for x in range(0,len(letter_tg_dict)):
@@ -161,6 +177,14 @@ def prepare_features(letter_tg_dict,page_rank_dict,cols,feature_names):
             lab_length = len(word_labels) #Num of words in candidate label feature
             new_list.append(lab_length)
             new_list.append(com_word_length)
+
+            try:
+                graph_cent_score = graph_cent_dict[x][k] #Page Rank Feature
+                graph_cent_score = float(graph_cent_score)
+            except:
+                graph_cent_score = 0
+
+            new_list.append(graph_cent_score)
             t_label = k.replace("_"," ")
             val = topic_labels[(topic_labels['topic_id'] == x) & (topic_labels['label'] == t_label)]['avg'].values[0] #The annotator value.
             new_list.append(val)
@@ -174,8 +198,8 @@ def prepare_features(letter_tg_dict,page_rank_dict,cols,feature_names):
     return frame
 
 
-cols = ['label','topic_id','letter_trigram','prank','lab_length','common_words','avg_val'] # Name of columns in DataFrame
-features =['letter_trigram','prank','lab_length','common_words'] # Feature names
+cols = ['label','topic_id','letter_trigram','prank','lab_length','common_words', 'graph_cent','avg_val'] # Name of columns in DataFrame
+features =['letter_trigram','prank','lab_length','common_words', 'graph_cent'] # Feature names
 
 # This function converts the dataset into a format which is taken by SVM ranker.
 def convert_dataset(train,feature_names):
@@ -191,7 +215,7 @@ def convert_dataset(train,feature_names):
     return train_list
 
 
-feature_dataset =prepare_features(lt_dict,p_rank_dict,cols,features)
+feature_dataset =prepare_features(lt_dict,p_rank_dict,graph_cent_dict,cols,features)
 print( "\n" )
 print( "All features generated" )
 

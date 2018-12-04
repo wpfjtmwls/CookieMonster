@@ -1,0 +1,11 @@
+gensim==0.12.4
+nltk==3.2.2
+numpy==1.14.3
+panda==0.3.1
+pandas==0.23.4
+scikit-learn==0.18.1
+scipy==1.0.1
+networkx
+rdflib
+sparqlwrapper
+pickle

@@ -18,6 +18,9 @@ from collections import defaultdict, Counter
 import os
 import sys
 import argparse
+import pickle
+
+path_graph_cent = "support_files/graph_cent.pickle" # Path to graph-centrality file.
 
 # Arguments being passed which were in get_labels.py file.
 parser = argparse.ArgumentParser()
@@ -94,7 +97,7 @@ def get_lt_ranks(lab_list,num):
         total = sum(label_cnt.values(), 0.0)
         for key in label_cnt:
             label_cnt[key] /= total
-        tot_keys = list(set(topic_ls.keys() + label_cnt.keys()))
+        tot_keys = list(set(list(topic_ls.keys()) + list(label_cnt.keys())))
         listtopic = []
         listlabel = []
         for elem in tot_keys:
@@ -138,6 +141,19 @@ def change_format(f1):
 lt_dict = change_format(letter_trigram_feature)
 
 """
+This method will be used to get feature of graph centrality scores for candidate labels and then rank them.
+It uses pickled dictionary created from upsupervised_labels_db.py
+"""
+def dd(): # redefining dd to retrive it as pickle
+    """
+    module level function for nested defaulctdict
+    """
+    return defaultdict(float)
+
+with open(path_graph_cent, 'rb') as handle: 
+    graph_cent_dict = pickle.load(handle)
+
+"""
 This method is to prepare all features. It will take in dictionary of letter trigram, pagerank, list of 
 all columns for the datframe and name of features. It will generate four features in the dataframe namely
 Pagerank, letter trigram, Topic overlap and Number of words in a label. Additionally DatFrame will also be given
@@ -145,7 +161,7 @@ the label name, topic_id and an avg_val which is average annotator value. It is 
 but can be anything as it does not make a difference in prediction. Only important when we have to train SVM model.
 """
 
-def prepare_features(letter_tg_dict,page_rank_dict,cols,feature_names):
+def prepare_features(letter_tg_dict,page_rank_dict,graph_cent_dict,cols,feature_names):
     frame =pd.DataFrame()
     for x in range(0,len(letter_tg_dict)):
         a = letter_tg_dict[x]
@@ -168,6 +184,14 @@ def prepare_features(letter_tg_dict,page_rank_dict,cols,feature_names):
             lab_length = len(word_labels) # number of words in the candidate label.   
             new_list.append(lab_length)
             new_list.append(com_word_length)
+
+            try:
+                graph_cent_score = graph_cent_dict[x][k] #Page Rank Feature
+                graph_cent_score = float(graph_cent_score)
+            except:
+                graph_cent_score = 0
+
+            new_list.append(graph_cent_score)
             new_list.append(3) #This could be just any value appended for the sake of giving a column for annotator rating neeeded in SVM Ranker classify
             temp = pd.Series(new_list,index =cols)
             temp_frame = temp_frame.append(temp,ignore_index =True)
@@ -180,10 +204,10 @@ def prepare_features(letter_tg_dict,page_rank_dict,cols,feature_names):
     return frame
 
 
-cols = ['label','topic_id','letter_trigram','prank','lab_length','common_words','avg_val'] # Name of columns for DataFrame.
-features =['letter_trigram','prank','lab_length','common_words'] # Name of features.
+cols = ['label','topic_id','letter_trigram','prank','lab_length','common_words', 'graph_cent','avg_val'] # Name of columns in DataFrame
+features =['letter_trigram','prank','lab_length','common_words', 'graph_cent'] # Feature names
 
-feature_dataset =prepare_features(lt_dict,p_rank_dict,cols,features)
+feature_dataset =prepare_features(lt_dict,p_rank_dict,graph_cent_dict,cols,features)
 print( "All features generated" )
 
 # This function converts the dataset into a format which is taken by SVM ranker classify binary file.

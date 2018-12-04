@@ -1,4 +1,3 @@
-*.txt
 *.zip
 venv/
 *.pyc
@@ -10,6 +9,7 @@ word2vec
 *.bin 
 *.vec
 *.log
+*.pickle
 bert_config.json
 
 model_run/pre_trained_models/*
@@ -19,4 +19,3 @@ model_run/output_supervised
 model_run/output_goldstandard
 model_run/output_candidates
 model_run/Topics/*
-model_run/Topics
